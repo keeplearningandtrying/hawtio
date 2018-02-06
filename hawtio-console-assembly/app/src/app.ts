@@ -1,8 +1,13 @@
+/// <reference path="./login/login.module.ts"/>
+
 namespace ConsoleAssembly {
 
   const pluginName = 'hawtio-console-assembly';
 
-  angular.module(pluginName, [])
+  angular
+    .module(pluginName, [
+      Login.loginModule
+    ])
     .run(refreshUserSessionWhenLocationChanges)
     .run(addLogoutToUserDropdown)
     .config(overrideAuthService);
@@ -38,7 +43,7 @@ namespace ConsoleAssembly {
     'ngInject';
     $provide.decorator('authService', [
       '$delegate',
-      function($delegate): Core.AuthService {
+      function ($delegate): Core.AuthService {
         return {
           logout(): void {
             window.location.href = 'auth/logout';

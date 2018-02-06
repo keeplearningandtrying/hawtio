@@ -25,7 +25,7 @@ const config = {
   src            : 'app/src/',
   srcTs          : 'app/src/**/*.ts',
   srcLess        : 'app/src/**/*.less',
-  srcTemplates   : 'app/src/**/!(index).html',
+  srcTemplates   : 'app/src/**/!(index|login).html',
   docTemplates   : '../@(CHANGES|FAQ).md',
   templateModule : 'hawtio-console-assembly-templates',
   temp           : 'temp/',
@@ -119,7 +119,7 @@ gulp.task('less', function() {
 });
 
 gulp.task('usemin', function() {
-  return gulp.src(config.src + 'index.html')
+  return gulp.src(config.src + '@(index|login).html')
     .pipe(plugins.usemin({
       css: [plugins.cleanCss(), 'concat'],
       js: [
@@ -135,24 +135,6 @@ gulp.task('usemin', function() {
     .pipe(plugins.debug({ title: 'usemin' }))
     .pipe(gulp.dest(config.dist));
 });
-
-// gulp.task('tweak-urls', ['usemin'], () =>
-//   eventStream.merge(
-//     gulp.src('target/site/index.html')
-//       // adjust image paths
-//       .pipe(plugins.replace(/"node_modules\/[^/]+\/img\//gm, '"img/')),
-//     gulp.src('target/site/style.css')
-//       .pipe(plugins.replace(/url\(\.\.\//g, 'url('))
-//       // tweak fonts URL coming from PatternFly that does not repackage then in dist
-//       .pipe(plugins.replace(/url\(\.\.\/components\/font-awesome\//g, 'url('))
-//       .pipe(plugins.replace(/url\(\.\.\/components\/bootstrap\/dist\//g, 'url('))
-//       .pipe(plugins.replace(/url\(node_modules\/bootstrap\/dist\//g, 'url('))
-//       .pipe(plugins.replace(/url\(node_modules\/patternfly\/components\/bootstrap\/dist\//g, 'url('))
-//       .pipe(plugins.debug({ title: 'tweak-urls' }))
-//     )
-//     .pipe(gulp.dest('target/site')
-//   )
-// );
 
 gulp.task('install-dependencies', function(cb) {
   exec(`cd ${config.app} &&
@@ -245,15 +227,15 @@ gulp.task('watch', function() {
   gulp.watch([
     config.distCss + '*',
     config.distJs + '*',
-    config.dist + 'index.html'
+    config.dist + '@(index|login).html'
   ], ['reload']);
   gulp.watch([config.srcTs, config.srcTemplates], ['tsc', 'template', 'concat']);
   gulp.watch(config.srcLess, ['less']);
-  gulp.watch(config.src + 'index.html', ['usemin']);
+  gulp.watch(config.src + '@(index|login).html', ['usemin']);
 });
 
 gulp.task('reload', function() {
-  gulp.src('dist/index.html')
+  gulp.src('dist/@(index|login).html')
     .pipe(hawtio.reload());
 });
 
