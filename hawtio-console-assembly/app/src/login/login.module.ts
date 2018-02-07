@@ -10,7 +10,7 @@ namespace Login {
 
   hawtioPluginLoader.registerPreBootstrapTask((next) => {
     KeycloakConfig = {
-      clientId: 'hawtio-karaf',
+      clientId: 'hawtio-client',
       url: 'http://localhost:18080/auth',
       realm: 'hawtio-demo'
     };
