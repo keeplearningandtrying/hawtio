@@ -1,25 +1,20 @@
-/// <reference path="./login.globals.ts"/>
-/// <reference path="../../node_modules/keycloak-js/dist/keycloak.d.ts"/>
+/// <reference path="../login.globals.ts"/>
+/// <reference path="../../../node_modules/keycloak-js/dist/keycloak.d.ts"/>
 
 namespace Login {
-
-  /**
-   * Info related to keycloak integration
-   */
-  export interface KeycloakContext {
-    enabled: boolean;
-    keycloak: Keycloak.KeycloakInstance;
-  }
-
-  export interface KeycloakPostLoginTasks {
-    bootstrapIfNeeded: Function;
-  }
-
-  const log: Logging.Logger = Logger.get('hawtio-login-keycloak');
 
   const KEYCLOAK_ENABLED_URL: string = "keycloak/enabled";
   const KEYCLOAK_JSON_URL: string = "keycloak/client-config";
   const KEYCLOAK_VALIDATE_URL: string = "keycloak/validate-subject-matches";
+
+  /**
+   * Prebootstrap task, which handles Keycloak OAuth flow. It will first check if keycloak is enabled and then possibly init keycloak.
+   * It will continue with Angular bootstrap just when Keycloak authentication is successfully finished
+   */
+  hawtioPluginLoader.registerPreBootstrapTask((next) => {
+    log.debug('Prebootstrap task executed');
+    checkKeycloakEnabled((keycloakContext) => initKeycloakIfNeeded(keycloakContext, next));
+  });
 
   /**
    * Send ajax request to KeycloakServlet to figure out if keycloak integration is enabled
@@ -91,24 +86,25 @@ namespace Login {
    */
   function createKeycloakContext(keycloakEnabled: boolean): KeycloakContext {
     // It's KeycloakServlet, which handles to resolve keycloak.json on provided path
-    let keycloakAuth: Keycloak.KeycloakInstance = keycloakEnabled ? new Keycloak(KEYCLOAK_JSON_URL) : null;
+    let keycloak: Keycloak.KeycloakInstance = keycloakEnabled ? new Keycloak(KEYCLOAK_JSON_URL) : null;
     let keycloakContext: KeycloakContext = {
       enabled: keycloakEnabled,
-      keycloak: keycloakAuth
+      keycloak: keycloak
     }
 
     // Push it to angular
-    angular.module(loginModule).factory('keycloakContext', () => keycloakContext);
+    angular.module(HawtioCore.pluginName).factory('keycloakContext', () => keycloakContext);
 
     return keycloakContext;
   }
 
 
-  function initKeycloakIfNeeded(keycloakContext: KeycloakContext, nextTask: () => void): void {
+  function initKeycloakIfNeeded(keycloakContext: KeycloakContext, next: () => void): void {
     if (!keycloakContext.enabled) {
       // Just continue
       log.debug('Keycloak authentication not required. Skip Keycloak bootstrap');
-      nextTask();
+      next();
+      return;
     }
 
     log.debug('Keycloak authentication required. Initializing Keycloak');
@@ -130,7 +126,7 @@ namespace Login {
         validateSubjectMatches(keycloakUsername, () => {
           log.debug("validateSubjectMatches finished! Continue next task");
           // Continue next registered task and bootstrap Angular
-          keycloakJaasSetup(keycloak, nextTask);
+          keycloakJaasSetup(keycloak, next);
         });
       })
       .error(() => {
@@ -218,25 +214,12 @@ namespace Login {
     } else {
       Core.notification('danger', 'Keycloak auth token not found.');
     }
-
-  };
-
-  /**
-   * Prebootstrap task, which handles Keycloak OAuth flow. It will first check if keycloak is enabled and then possibly init keycloak.
-   * It will continue with Angular bootstrap just when Keycloak authentication is successfully finished
-   */
-  hawtioPluginLoader.registerPreBootstrapTask(function (nextTask) {
-    log.debug('Prebootstrap task executed');
-
-    checkKeycloakEnabled(function (keycloakContext) {
-      initKeycloakIfNeeded(keycloakContext, nextTask);
-    });
-  });
+  }
 
   /**
    * Method is called from corePlugins. This is at the stage where Keycloak authentication is always finished.
    */
-  angular.module(pluginName)
+  angular.module(HawtioCore.pluginName)
     .factory('keycloakPostLoginTasks', keycloakPostLoginTasks);
 
   function keycloakPostLoginTasks(
@@ -280,4 +263,15 @@ namespace Login {
     return { bootstrapIfNeeded: bootstrapIfNeededFunc };
   }
 
+  /**
+   * Info related to keycloak integration
+   */
+  export interface KeycloakContext {
+    enabled: boolean;
+    keycloak: Keycloak.KeycloakInstance;
+  }
+
+  export interface KeycloakPostLoginTasks {
+    bootstrapIfNeeded: Function;
+  }
 }

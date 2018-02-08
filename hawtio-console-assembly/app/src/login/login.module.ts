@@ -1,5 +1,6 @@
 /// <reference path="./login.globals.ts"/>
 /// <reference path="./login.controller.ts"/>
+/// <reference path="./keycloak-login/keycloak-login.module.ts"/>
 
 namespace Login {
 
@@ -8,6 +9,7 @@ namespace Login {
     .component('hawtioLogin', loginComponent)
     .name;
 
+  /*
   hawtioPluginLoader.registerPreBootstrapTask((next) => {
     KeycloakConfig = {
       clientId: 'hawtio-client',
@@ -16,6 +18,7 @@ namespace Login {
     };
     next();
   }, true);
+  */
 
   hawtioPluginLoader.addModule(pluginName);
 

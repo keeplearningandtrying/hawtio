@@ -1,66 +1,66 @@
-const gulp          = require('gulp'),
-    eventStream     = require('event-stream'),
-    gulpLoadPlugins = require('gulp-load-plugins'),
-    map             = require('vinyl-map'),
-    fs              = require('fs'),
-    path            = require('path'),
-    sequence        = require('run-sequence'),
-    size            = require('gulp-size'),
-    uri             = require('urijs'),
-    s               = require('underscore.string'),
-    argv            = require('yargs').argv,
-    logger          = require('js-logger'),
-    hawtio          = require('@hawtio/node-backend'),
-    tslint          = require('gulp-tslint'),
-    tslintRules     = require('./tslint.json'),
-    exec            = require('child_process').exec;
+const gulp = require('gulp'),
+  eventStream = require('event-stream'),
+  gulpLoadPlugins = require('gulp-load-plugins'),
+  map = require('vinyl-map'),
+  fs = require('fs'),
+  path = require('path'),
+  sequence = require('run-sequence'),
+  size = require('gulp-size'),
+  uri = require('urijs'),
+  s = require('underscore.string'),
+  argv = require('yargs').argv,
+  logger = require('js-logger'),
+  hawtio = require('@hawtio/node-backend'),
+  tslint = require('gulp-tslint'),
+  tslintRules = require('./tslint.json'),
+  exec = require('child_process').exec;
 
 const plugins = gulpLoadPlugins({});
 
 const config = {
-  proxyPort      : argv.port || 8181,
-  targetPath     : argv.path || '/hawtio/jolokia',
-  logLevel       : argv.debug ? logger.DEBUG : logger.INFO,
-  app            : 'app/',
-  src            : 'app/src/',
-  srcTs          : 'app/src/**/*.ts',
-  srcLess        : 'app/src/**/*.less',
-  srcTemplates   : 'app/src/**/!(index|login).html',
-  docTemplates   : '../@(CHANGES|FAQ).md',
-  templateModule : 'hawtio-console-assembly-templates',
-  temp           : 'temp/',
-  dist           : 'dist/',
-  distJs         : 'dist/js',
-  distCss        : 'dist/css',
-  distFonts      : 'dist/fonts',
-  distLibs       : 'dist/libs',
-  distImg        : 'dist/img',
-  js             : 'hawtio-console-assembly.js',
-  css            : 'hawtio-console-assembly.css',
-  tsProject      : plugins.typescript.createProject('tsconfig.json'),
-  tsLintOptions  : {
+  proxyPort: argv.port || 8181,
+  targetPath: argv.path || '/hawtio/jolokia',
+  logLevel: argv.debug ? logger.DEBUG : logger.INFO,
+  app: 'app/',
+  src: 'app/src/',
+  srcTs: 'app/src/**/*.ts',
+  srcLess: 'app/src/**/*.less',
+  srcTemplates: 'app/src/**/!(index|login).html',
+  docTemplates: '../@(CHANGES|FAQ).md',
+  templateModule: 'hawtio-console-assembly-templates',
+  temp: 'temp/',
+  dist: 'dist/',
+  distJs: 'dist/js',
+  distCss: 'dist/css',
+  distFonts: 'dist/fonts',
+  distLibs: 'dist/libs',
+  distImg: 'dist/img',
+  js: 'hawtio-console-assembly.js',
+  css: 'hawtio-console-assembly.css',
+  tsProject: plugins.typescript.createProject('tsconfig.json'),
+  tsLintOptions: {
     rulesDirectory: './tslint-rules/'
   },
   sourceMap: argv.sourcemap
 };
 
 var normalSizeOptions = {
-    showFiles: true
-}, gZippedSizeOptions  = {
-    showFiles: true,
-    gzip: true
+  showFiles: true
+}, gZippedSizeOptions = {
+  showFiles: true,
+  gzip: true
 };
 
 //------------------------------------------------------------------------------
 // build tasks
 //------------------------------------------------------------------------------
 
-gulp.task('clean', function() {
+gulp.task('clean', function () {
   return gulp.src(['dist', 'temp'], { read: false })
     .pipe(plugins.clean());
 });
 
-gulp.task('tsc', function() {
+gulp.task('tsc', function () {
   return gulp.src(config.srcTs)
     .pipe(plugins.debug({ title: 'tsc' }))
     .pipe(plugins.if(config.sourceMap, plugins.sourcemaps.init()))
@@ -76,7 +76,7 @@ gulp.task('tsc', function() {
     .pipe(gulp.dest(config.temp));
 });
 
-gulp.task('template', function() {
+gulp.task('template', function () {
   return gulp.src(config.srcTemplates)
     .pipe(plugins.angularTemplatecache({
       filename: 'templates.js',
@@ -88,7 +88,7 @@ gulp.task('template', function() {
     .pipe(gulp.dest(config.temp));
 });
 
-gulp.task('template-docs', function() {
+gulp.task('template-docs', function () {
   return gulp.src(config.docTemplates)
     .pipe(plugins.angularTemplatecache({
       filename: 'doc-templates.js',
@@ -100,7 +100,7 @@ gulp.task('template-docs', function() {
     .pipe(gulp.dest(config.temp));
 });
 
-gulp.task('concat', function() {
+gulp.task('concat', function () {
   var gZipSize = size(gZippedSizeOptions);
   var license = tslintRules.rules['license-header'][1];
   return gulp.src(config.temp + '*.js')
@@ -111,14 +111,14 @@ gulp.task('concat', function() {
     .pipe(gulp.dest(config.distJs));
 });
 
-gulp.task('less', function() {
+gulp.task('less', function () {
   return gulp.src(config.srcLess)
     .pipe(plugins.less())
     .pipe(plugins.concat(config.css))
     .pipe(gulp.dest(config.distCss));
 });
 
-gulp.task('usemin', function() {
+gulp.task('usemin', function () {
   return gulp.src(config.src + '@(index|login).html')
     .pipe(plugins.usemin({
       css: [plugins.cleanCss(), 'concat'],
@@ -136,22 +136,22 @@ gulp.task('usemin', function() {
     .pipe(gulp.dest(config.dist));
 });
 
-gulp.task('install-dependencies', function(cb) {
+gulp.task('install-dependencies', function (cb) {
   exec(`cd ${config.app} &&
         yarn install --prod --flat --frozen-lockfile &&
         cd .. &&
         cp -R ${config.app}/node_modules ${config.distLibs}`, function (err, stdout, stderr) {
-    console.log(stdout);
-    console.log(stderr);
-    cb(err);
-  });
+      console.log(stdout);
+      console.log(stderr);
+      cb(err);
+    });
 });
 
-gulp.task('copy-images', function() {
+gulp.task('copy-images', function () {
   var hawtioDependencies = config.app + 'node_modules/@hawtio';
   var dirs = fs.readdirSync(hawtioDependencies);
   var patterns = [];
-  dirs.forEach(function(dir) {
+  dirs.forEach(function (dir) {
     var path = hawtioDependencies + '/' + dir + '/dist/img';
     try {
       if (fs.statSync(path).isDirectory()) {
@@ -170,13 +170,13 @@ gulp.task('copy-images', function() {
     .pipe(gulp.dest(config.distImg));
 });
 
-gulp.task('404', ['usemin'], function() {
+gulp.task('404', ['usemin'], function () {
   return gulp.src(config.dist + 'index.html')
     .pipe(plugins.rename('404.html'))
     .pipe(gulp.dest(config.dist));
 });
 
-gulp.task('copy-config', function() {
+gulp.task('copy-config', function () {
   return gulp.src(config.src + '*.json')
     .pipe(gulp.dest(config.dist));
 });
@@ -185,7 +185,7 @@ gulp.task('copy-config', function() {
 // serve tasks
 //------------------------------------------------------------------------------
 
-gulp.task('connect', function() {
+gulp.task('connect', function () {
   hawtio.setConfig({
     logLevel: config.logLevel,
     port: 2772,
@@ -216,14 +216,19 @@ gulp.task('connect', function() {
     }
   });
 
-  hawtio.listen(function(server) {
+  hawtio.use('/hawtio/keycloak/enabled', (req, res, next) => {
+    res.set('Content-Type', 'application/json');
+    res.send('false');
+  });
+
+  hawtio.listen(function (server) {
     var host = server.address().address;
     var port = server.address().port;
     console.log("started from gulp file at ", host, ":", port);
   });
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', function () {
   gulp.watch([
     config.distCss + '*',
     config.distJs + '*',
@@ -234,7 +239,7 @@ gulp.task('watch', function() {
   gulp.watch(config.src + '@(index|login).html', ['usemin']);
 });
 
-gulp.task('reload', function() {
+gulp.task('reload', function () {
   gulp.src('dist/@(index|login).html')
     .pipe(hawtio.reload());
 });
