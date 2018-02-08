@@ -1,4 +1,5 @@
 /// <reference path="./login.globals.ts"/>
+/// <reference path="./keycloak-login.ts"/>
 
 namespace Login {
 
