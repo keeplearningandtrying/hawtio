@@ -67,9 +67,9 @@
   dependencies:
     "@hawtio/jmx" "3.2.0"
 
-"@hawtio/oauth@3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@hawtio/oauth/-/oauth-3.0.1.tgz#48c27d0c44fa746dce1f7b5f6e1c18640d4de9e6"
+"@hawtio/oauth@3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@hawtio/oauth/-/oauth-3.0.2.tgz#e50928c74e5caa555a95076101aa079c36562ec7"
   dependencies:
     "@hawtio/core" "3.2.7"
     "@hawtio/forms" "3.0.12"

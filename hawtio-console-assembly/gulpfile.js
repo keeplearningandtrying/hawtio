@@ -78,6 +78,7 @@ gulp.task('tsc', function () {
 
 gulp.task('template', function () {
   return gulp.src(config.srcTemplates)
+    .pipe(plugins.debug({ title: 'template' }))
     .pipe(plugins.angularTemplatecache({
       filename: 'templates.js',
       root: config.src,
@@ -214,6 +215,11 @@ gulp.task('connect', function () {
     } else {
       next();
     }
+  });
+
+  hawtio.use('/hawtio/auth/login', (req, res, next) => {
+    res.set('Content-Type', 'application/json');
+    res.send('{}');
   });
 
   hawtio.use('/hawtio/keycloak/enabled', (req, res, next) => {

@@ -20,13 +20,14 @@ namespace Login {
     $onInit(): void {
       // fetch hawtconfig.json
       this.$http.get('hawtconfig.json')
-        .then(function (response: ng.IHttpResponse<Core.Config>) {
-          log.debug('hawtconfig.json:', response.data);
-          this.branding = response.data.branding;
-        },
-        function (response) {
-          log.warn('Failed to fetch hawtconfig.json', response);
-        });
+        .then(
+          (response: ng.IHttpResponse<Core.Config>) => {
+            log.debug('hawtconfig.json:', response.data);
+            this.branding = response.data.branding;
+          },
+          (response) => {
+            log.warn('Failed to fetch hawtconfig.json', response);
+          });
     }
 
     doLogin(): void {
@@ -35,19 +36,19 @@ namespace Login {
         return;
       }
       this.$http.post(url, this.entity).then(
-        function (response) {
+        (response: ng.IHttpResponse<any>) => {
           log.debug("login success:", response.data);
           this.$window.location.href = '/hawtio/';
         },
-        function (response) {
+        (response) => {
           log.error('Failed to log in', response);
-          this.ctrl.wrongPassword = true;
+          this.wrongPassword = true;
         });
     }
   }
 
   export const loginComponent: angular.IComponentOptions = {
     controller: LoginController,
-    templateUrl: 'src/login/login-template.html'
+    templateUrl: 'app/src/login/login-template.html'
   };
 }
