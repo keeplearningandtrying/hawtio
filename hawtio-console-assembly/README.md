@@ -23,6 +23,10 @@ This assembles all hawtio v2 components for the web console for Java.
 
     yarn start
 
+#### To test Keycloak integration
+
+    yarn start --keycloak
+
 ### Change the default proxy port
 
 To proxy to a local JVM running on a different port than `8181` specify the `--port` CLI arguement to gulp:

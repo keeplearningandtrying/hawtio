@@ -21,6 +21,7 @@ const config = {
   proxyPort: argv.port || 8181,
   targetPath: argv.path || '/hawtio/jolokia',
   logLevel: argv.debug ? logger.DEBUG : logger.INFO,
+  keycloak: argv.keycloak ? 'true' : 'false',
   app: 'app/',
   src: 'app/src/',
   srcTs: 'app/src/**/*.ts',
@@ -217,20 +218,42 @@ gulp.task('connect', function () {
     }
   });
 
+  // used for hawtio-login
   hawtio.use('/hawtio/auth/login', (req, res, next) => {
+    // login always succeeds
     res.set('Content-Type', 'application/json');
     res.send('{}');
   });
 
+  // used for hawtio-login
+  hawtio.use('/hawtio/auth/logout', (req, res, next) => {
+    res.redirect('/hawtio/login.html');
+  });
+
+  // used for hawtio-login
   hawtio.use('/hawtio/keycloak/enabled', (req, res, next) => {
     res.set('Content-Type', 'application/json');
-    res.send('false');
+    res.send(config.keycloak);
+  });
+
+  // used for hawtio-login
+  hawtio.use('/hawtio/keycloak/client-config', (req, res, next) => {
+    res.set('Content-Type', 'application/json');
+    res.send(`
+      {
+        realm: "hawtio-demo",
+        resource: "hawtio-client",
+        auth-server-url: "http://localhost:18080/auth",
+        ssl-required: "external",
+        public-client: true
+      }
+    `);
   });
 
   hawtio.listen(function (server) {
     var host = server.address().address;
     var port = server.address().port;
-    console.log("started from gulp file at ", host, ":", port);
+    console.log("started from gulp file at", host, ":", port);
   });
 });
 
