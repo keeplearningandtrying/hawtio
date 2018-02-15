@@ -241,11 +241,9 @@ gulp.task('connect', function () {
     res.set('Content-Type', 'application/json');
     res.send(`
       {
-        realm: "hawtio-demo",
-        resource: "hawtio-client",
-        auth-server-url: "http://localhost:18080/auth",
-        ssl-required: "external",
-        public-client: true
+        "clientId": "hawtio-client",
+        "url": "http://localhost:18080/auth",
+        "realm": "hawtio-demo"
       }
     `);
   });

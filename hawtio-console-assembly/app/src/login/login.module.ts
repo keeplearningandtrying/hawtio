@@ -9,17 +9,6 @@ namespace Login {
     .component('hawtioLogin', loginComponent)
     .name;
 
-  /*
-  hawtioPluginLoader.registerPreBootstrapTask((next) => {
-    KeycloakConfig = {
-      clientId: 'hawtio-client',
-      url: 'http://localhost:18080/auth',
-      realm: 'hawtio-demo'
-    };
-    next();
-  }, true);
-  */
-
   hawtioPluginLoader.addModule(pluginName);
 
 }

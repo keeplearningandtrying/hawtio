@@ -12,7 +12,7 @@ namespace ConsoleAssembly {
     .run(addLogoutToUserDropdown)
     .config(overrideAuthService);
 
-  function refreshUserSessionWhenLocationChanges($rootScope, $http) {
+  function refreshUserSessionWhenLocationChanges($rootScope, $http: ng.IHttpService): void {
     'ngInject';
     $rootScope.$on('$locationChangeStart', ($event, newUrl, oldUrl) => {
       $http({
@@ -26,7 +26,7 @@ namespace ConsoleAssembly {
     });
   }
 
-  function addLogoutToUserDropdown(HawtioExtension) {
+  function addLogoutToUserDropdown(HawtioExtension): void {
     'ngInject';
     HawtioExtension.add('hawtio-user', ($scope) => {
       const a = document.createElement('a');
@@ -39,13 +39,14 @@ namespace ConsoleAssembly {
     });
   }
 
-  function overrideAuthService($provide) {
+  function overrideAuthService($provide: ng.auto.IProvideService): void {
     'ngInject';
     $provide.decorator('authService', [
       '$delegate',
-      function ($delegate): Core.AuthService {
+      function authServiceDecorator($delegate): Core.AuthService {
         return {
           logout(): void {
+            $delegate.logout();
             window.location.href = 'auth/logout';
           }
         };

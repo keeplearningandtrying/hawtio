@@ -10,7 +10,7 @@
   "resolutions": {
     "@hawtio/core": "3.2.5",
     "@hawtio/core-dts": "3.0.18",
-    "@hawtio/jmx": "3.2.3",
+    "@hawtio/jmx": "3.2.11",
     "@hawtio/ui": "3.2.1",
     "@hawtio/utilities": "3.2.0",
     "@types/lodash": "4.14.91",

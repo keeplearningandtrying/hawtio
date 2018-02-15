@@ -4,62 +4,71 @@
 namespace Login {
 
   const KEYCLOAK_ENABLED_URL: string = "keycloak/enabled";
-  const KEYCLOAK_JSON_URL: string = "keycloak/client-config";
+  const KEYCLOAK_CLIENT_CONFIG_URL: string = "keycloak/client-config";
   const KEYCLOAK_VALIDATE_URL: string = "keycloak/validate-subject-matches";
 
-  /**
-   * Prebootstrap task, which handles Keycloak OAuth flow. It will first check if keycloak is enabled and then possibly init keycloak.
-   * It will continue with Angular bootstrap just when Keycloak authentication is successfully finished
-   */
+  /*
   hawtioPluginLoader.registerPreBootstrapTask((next) => {
-    log.debug('Prebootstrap task executed');
-    checkKeycloakEnabled((keycloakContext) => initKeycloakIfNeeded(keycloakContext, next));
-  });
+    KeycloakConfig = {
+      clientId: 'hawtio-client',
+      url: 'http://localhost:18080/auth',
+      realm: 'hawtio-demo'
+    };
+    next();
+  }, true);
+  */
+
+  /**
+   * Prebootstrap task, which handles Keycloak OAuth flow.
+   * It will first check if keycloak is enabled and then possibly init keycloak.
+   * It will continue with AngularJS bootstrap just when Keycloak authentication
+   * is successfully finished
+   */
+  hawtioPluginLoader.registerPreBootstrapTask(
+    {
+      name: 'KeycloakBootstrap',
+      task: (next) => {
+        log.debug('Pre-bootstrap task executed');
+        initKeycloakIfEnabled((keycloakContext) => initKeycloakIfNeeded(keycloakContext, next));
+        next();
+      }
+    },
+    true);
 
   /**
    * Send ajax request to KeycloakServlet to figure out if keycloak integration is enabled
    */
-  function checkKeycloakEnabled(callback: (context: KeycloakContext) => void) {
-    $.ajax(KEYCLOAK_ENABLED_URL, <JQueryAjaxSettings>{
+  function initKeycloakIfEnabled(callback: (context: KeycloakContext) => void) {
+    $.ajax(KEYCLOAK_ENABLED_URL, {
       type: "GET",
-      success: (response) => {
-        log.debug("Got response for check if keycloak is enabled:", response);
-        let keycloakEnabled = (response === true || response === "true");
-
-        if (!keycloakEnabled) {
-          let keycloakContext = createKeycloakContext(false);
-          callback(keycloakContext);
-        } else {
-          loadKeycloakAdapter(callback);
+      success: (data: any, status: string, xhr: JQueryXHR) => {
+        log.debug("Keycloak enabled:", data);
+        let keycloakEnabled = (data === true || data === "true");
+        if (keycloakEnabled) {
+          loadKeycloakConfig(callback);
         }
       },
-      error: (xhr, textStatus, error) => {
+      error: (xhr: JQueryXHR, status: string, error: string) => {
         // Just fallback to false if we couldn't figure userDetails
-        log.debug("Failed to retrieve if keycloak is enabled.:", error);
-        let keycloakContext = createKeycloakContext(false);
-        callback(keycloakContext);
+        log.debug("Failed to retrieve keycloak/enabled:", error);
       }
     });
   }
 
   /**
-   * Send ajax request to KeycloakServlet to figure out auth-server-url
+   * Send ajax request to KeycloakServlet to figure out 'auth-server-url'
    */
-  function loadKeycloakAdapter(callback: (context: KeycloakContext) => void) {
-    $.ajax(KEYCLOAK_JSON_URL, <JQueryAjaxSettings>{
+  function loadKeycloakConfig(callback: (context: KeycloakContext) => void) {
+    $.ajax(KEYCLOAK_CLIENT_CONFIG_URL, <JQueryAjaxSettings>{
       type: "GET",
-      success: (response) => {
-        log.debug("Got response for check auth-server-url:", response);
-
-        let authServerUrl = response['auth-server-url'];
-        let keycloakJsUrl = authServerUrl + '/js/keycloak.js';
-
-        log.debug("Will download keycloak.js from URL:", keycloakJsUrl);
-        loadScriptTag(keycloakJsUrl, callback);
+      success: (data: any, status: string, xhr: JQueryXHR) => {
+        log.debug("keycloak/client-config:", data);
+        // This enables hawtio-oauth keycloak integration
+        window['KeycloakConfig'] = data;
       },
-      error: (xhr, textStatus, error) => {
+      error: (xhr: JQueryXHR, status: string, error: string) => {
         // Just fallback to false if we couldn't figure userDetails
-        log.debug("Failed to retrieve keycloak.js:", error);
+        log.debug("Failed to retrieve keycloak/client-config:", error);
         let keycloakContext: KeycloakContext = createKeycloakContext(false);
         callback(keycloakContext);
       }
@@ -86,7 +95,7 @@ namespace Login {
    */
   function createKeycloakContext(keycloakEnabled: boolean): KeycloakContext {
     // It's KeycloakServlet, which handles to resolve keycloak.json on provided path
-    let keycloak: Keycloak.KeycloakInstance = keycloakEnabled ? new Keycloak(KEYCLOAK_JSON_URL) : null;
+    let keycloak: Keycloak.KeycloakInstance = keycloakEnabled ? new Keycloak(KEYCLOAK_CLIENT_CONFIG_URL) : null;
     let keycloakContext: KeycloakContext = {
       enabled: keycloakEnabled,
       keycloak: keycloak
@@ -228,7 +237,7 @@ namespace Login {
     jolokiaUrl,
     localStorage,
     keycloakContext: KeycloakContext,
-    postLogoutTasks): KeycloakPostLoginTasks {
+    postLogoutTasks: Core.Tasks): KeycloakPostLoginTasks {
     'ngInject';
 
     let bootstrapIfNeededFunc = () => {
