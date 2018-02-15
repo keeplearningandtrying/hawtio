@@ -2,6 +2,8 @@
 
 namespace Login {
 
+  const LOGIN_URL: string = 'auth/login';
+
   export class LoginController {
 
     branding = {};
@@ -13,32 +15,31 @@ namespace Login {
 
     constructor(
       private $http: ng.IHttpService,
-      private $window: ng.IWindowService) {
+      private $window: ng.IWindowService,
+      private documentBase: string) {
       'ngInject';
     }
 
     $onInit(): void {
       // fetch hawtconfig.json
-      this.$http.get('hawtconfig.json')
-        .then(
-          (response: ng.IHttpResponse<Core.Config>) => {
-            log.debug('hawtconfig.json:', response.data);
-            this.branding = response.data.branding;
-          },
-          (response) => {
-            log.warn('Failed to fetch hawtconfig.json', response);
-          });
+      this.$http.get('hawtconfig.json').then(
+        (response: ng.IHttpResponse<Core.Config>) => {
+          log.debug('hawtconfig.json:', response.data);
+          this.branding = response.data.branding;
+        },
+        (response) => {
+          log.warn('Failed to fetch hawtconfig.json', response);
+        });
     }
 
     doLogin(): void {
-      let url = 'auth/login';
       if (this.entity.username.trim() == '') {
         return;
       }
-      this.$http.post(url, this.entity).then(
+      this.$http.post(LOGIN_URL, this.entity).then(
         (response: ng.IHttpResponse<any>) => {
           log.debug("login success:", response.data);
-          this.$window.location.href = '/hawtio/';
+          this.$window.location.href = this.documentBase;
         },
         (response) => {
           log.error('Failed to log in', response);

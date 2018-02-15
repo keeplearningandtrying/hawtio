@@ -19,14 +19,14 @@ namespace ConsoleAssembly {
         method: 'post',
         url: 'refresh'
       }).then((response) => {
-        console.debug("Updated session. Response: ", response);
+        log.debug("Updated session. Response:", response);
       }).catch((response) => {
-        console.debug("Failed to update session expiry. Response: " + response);
+        log.debug("Failed to update session expiry. Response:", response);
       });
     });
   }
 
-  function addLogoutToUserDropdown(HawtioExtension): void {
+  function addLogoutToUserDropdown(HawtioExtension: Core.HawtioExtension): void {
     'ngInject';
     HawtioExtension.add('hawtio-user', ($scope) => {
       const a = document.createElement('a');
